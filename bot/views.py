@@ -25,7 +25,6 @@ bot = telebot.TeleBot(settings.BOT_TOKEN)
 
 def web_hook_view(request):
     if request.method == 'POST':
-        # print('/'*88)
         bot.process_new_updates([telebot.types.Update.de_json(request.body.decode("utf-8"))])
         return HttpResponse(status=200)
     return HttpResponse('404 not found')

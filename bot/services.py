@@ -1,4 +1,5 @@
-from telebot.types import KeyboardButton, ReplyKeyboardMarkup
+from telebot.types import KeyboardButton
+from telebot.types import ReplyKeyboardMarkup
 
 from bot.models import Orders
 from bot.models import Tg_Users
@@ -82,22 +83,18 @@ def select_district(message, bot):
 
 
 def number_of_passengers(message, bot):
-    try:
-        user = Tg_Users.objects.get(user_id=message.from_user.id)
-        order = Orders.objects.get(user=user, status=False)
-        order.seats=int(message.text)
-        order.save()
-        reply_markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
-        buttons = KeyboardButton(text="Raqamni jo'natish", request_contact=True)
-        reply_markup.add(buttons)
-        reply_markup.add(KeyboardButton(text=BUTTONS['BACK']))
-        text = " Raqamni jo'natish tugmasi orqali raqamingzni jo'nating"
-        bot.send_message(message.from_user.id, text, reply_markup=reply_markup)
+    user = Tg_Users.objects.get(user_id=message.from_user.id)
+    order = Orders.objects.get(user=user, status=False)
+    order.seats = int(message.text)
+    order.save()
+    reply_markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+    buttons = KeyboardButton(text="Raqamni jo'natish", request_contact=True)
+    reply_markup.add(buttons)
+    reply_markup.add(KeyboardButton(text=BUTTONS['BACK']))
+    text = " Raqamni jo'natish tugmasi orqali raqamingzni jo'nating"
+    bot.send_message(message.from_user.id, text, reply_markup=reply_markup)
 
-        Tg_Users.objects.filter(user_id=message.from_user.id).update(step=USER_STEP['THANK_YOU_MESSAGE'])
-
-    except Exception as e:
-        print(e)
+    Tg_Users.objects.filter(user_id=message.from_user.id).update(step=USER_STEP['THANK_YOU_MESSAGE'])
 
 
 def thank_you_message(message, bot):
@@ -110,7 +107,6 @@ def thank_you_message(message, bot):
     reply_markup.add(*buttons)
     bot.send_message(message.chat.id, text, reply_markup=reply_markup)
 
-    # Update order status and gather order-related information
     user = Tg_Users.objects.get(user_id=message.chat.id)
     order = Orders.objects.get(user=user, status=False)
     order.status = True
