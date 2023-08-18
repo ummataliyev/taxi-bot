@@ -3,12 +3,12 @@ USER_STEP = {
     'ENTER_FIRST_NAME': 1,
     'CHOOSE_LOCATION': 2,
     'SELECT_DISTRICT': 3,
+    'NUMBER_OF_PASSANGERS': 4,
+    'THANK_YOU_MESSAGE': 5,
 }
 
 BUTTONS = {
-    'BACK': '◀️ Menyuga qaytish',
-    'CREATE_ORDER': '✅ Buyurtmani tasdiqlash',
-
+    'BACK': 'Orqaga qaytish'
 }
 
 CHANNEL_ID = '-1001718993048'

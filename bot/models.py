@@ -22,12 +22,13 @@ class Orders(models.Model):
     user = models.ForeignKey(Tg_Users, on_delete=models.SET_NULL, null=True, related_name='user_orders')
     from_to = models.ForeignKey(Province, on_delete=models.SET_NULL, blank=True, null=True)
     where = models.ForeignKey(District, on_delete=models.SET_NULL, blank=True, null=True)
+    seats = models.PositiveIntegerField(blank=True, null=True)
     status = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = "Order"
         verbose_name_plural = "Orders"
 
-    def __str__(self) -> str:
-        status_str = "Completed" if self.status else "Pending"
-        return f"{self.user.user_id} has {status_str} taxi booking"
+    # def __str__(self) -> str:
+    #     status_str = "Completed" if self.status else "Pending"
+    #     return f"{self.user.user_id} has {status_str} taxi booking"
