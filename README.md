@@ -1,2 +1,2 @@
 # Sp_ServiceBot
-Tashkent - Fergana taxi bot 🚕
+Tashkent - Fergana Taxi bot 🚕
