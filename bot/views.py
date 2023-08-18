@@ -1,7 +1,10 @@
 import telebot
 from django.conf import settings
 from django.http.response import HttpResponse
-from telebot.types import KeyboardButton, ReplyKeyboardMarkup
+
+from telebot.types import KeyboardButton
+from telebot.types import ReplyKeyboardMarkup
+
 
 from bot.const import BUTTONS
 from bot.const import USER_STEP
@@ -30,27 +33,32 @@ def web_hook_view(request):
 
 @bot.message_handler(commands=['start'])
 def start_message(message):
-    if Tg_Users.objects.filter(user_id=message.chat.id).exists():
-        user = Tg_Users.objects.get(user_id=message.chat.id)
-        Orders.objects.get(user=user, status=False).delete()
+    try:
+        if Tg_Users.objects.filter(user_id=message.chat.id).exists():
+            try:
+                user = Tg_Users.objects.get(user_id=message.chat.id)
+                Orders.objects.get(user=user, status=False).delete()
+            except:
+                pass
+            Tg_Users.objects.filter(user_id=message.chat.id).update(step=USER_STEP['CHOOSE_LOCATION'])
 
-        Tg_Users.objects.filter(user_id=message.chat.id).update(step=USER_STEP['CHOOSE_LOCATION'])
+            text = 'Siz turgan manzil ?'
+            province = Province.objects.all().values_list('name', flat=True)
+            reply_markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
 
-        text = 'Siz turgan manzil ?'
-        province = Province.objects.all().values_list('name', flat=True)
-        reply_markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+            buttons = [KeyboardButton(text=text) for text in province]
+            reply_markup.add(*buttons)
 
-        buttons = [KeyboardButton(text=text) for text in province]
-        reply_markup.add(*buttons)
+            bot.send_message(message.chat.id, text, reply_markup=reply_markup)
+        else:
+            print('/'*88)
+            Tg_Users.objects.create(user_id=message.chat.id, step=USER_STEP['ENTER_FIRST_NAME'])
 
-        bot.send_message(message.chat.id, text, reply_markup=reply_markup)
-    else:
-        print('/'*88)
-        Tg_Users.objects.create(user_id=message.chat.id, step=USER_STEP['ENTER_FIRST_NAME'])
-
-        text = 'Salom Xush kelibsiz!!!\n\n'
-        text += 'Ismingizni kiriting:'
-        bot.send_message(message.chat.id, text)
+            text = 'Salom Xush kelibsiz!!!\n\n'
+            text += 'Ismingizni kiriting:'
+            bot.send_message(message.chat.id, text)
+    except Exception as e:
+        print(e)
 
 
 @bot.message_handler(regexp=BUTTONS['BACK'])

@@ -104,18 +104,32 @@ def thank_you_message(message, bot):
     Tg_Users.objects.filter(user_id=message.chat.id).update(step=2)
 
     text = "Rahmat tez orada siz bn bog'lanamiz!"
-
     province = Province.objects.all().values_list('name', flat=True)
     reply_markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
-
     buttons = [KeyboardButton(text=text) for text in province]
     reply_markup.add(*buttons)
-
     bot.send_message(message.chat.id, text, reply_markup=reply_markup)
 
-    # Sending a message to the channel
-    user_name = message.chat.first_name  # Extract the user's first name
-    user_from = message.chat.username  # Extract the user's username
+    # Update order status and gather order-related information
+    user = Tg_Users.objects.get(user_id=message.chat.id)
+    order = Orders.objects.get(user=user, status=False)
+    order.status = True
+    order.save()
+    user_name = message.chat.first_name
+    user_from = message.chat.username
+    from_to = order.from_to
+    where = order.where
+    seats = order.seats
     user_contact = message.contact.phone_number
-    channel_text = f"New user contact:\nName: {user_name}\nFrom: {user_from}\nContact: {user_contact}"
+
+    channel_text = (
+        f"New user contact:\n"
+        f"Name: {user_name}\n"
+        f"From: {user_from}\n"
+        f"Contact: {user_contact}\n"
+        f"Pickup Location: {from_to}\n"
+        f"Drop-off Location: {where}\n"
+        f"Number of Seats: {seats}"
+    )
+
     bot.send_message(CHANNEL_ID, channel_text)

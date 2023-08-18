@@ -29,6 +29,6 @@ class Orders(models.Model):
         verbose_name = "Order"
         verbose_name_plural = "Orders"
 
-    # def __str__(self) -> str:
-    #     status_str = "Completed" if self.status else "Pending"
-    #     return f"{self.user.user_id} has {status_str} taxi booking"
+    def __str__(self) -> str:
+        status_str = "Completed" if self.status else "Pending"
+        return f"{self.user.first_name} has {status_str} taxi booking"
