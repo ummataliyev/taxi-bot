@@ -1,9 +1,7 @@
 import telebot
-from telebot.types import KeyboardButton
-from telebot.types import ReplyKeyboardMarkup
-
 from django.conf import settings
 from django.http.response import HttpResponse
+from telebot.types import KeyboardButton, ReplyKeyboardMarkup
 
 from bot.const import BUTTONS
 from bot.const import USER_STEP
@@ -58,8 +56,9 @@ def start_message(message):
 @bot.message_handler(regexp=BUTTONS['BACK'])
 def back_message(message):
     user = Tg_Users.objects.get(user_id=message.chat.id)
+    print(user.step)
 
-    if user.step == USER_STEP['CHOOSE_LOCATION']:
+    if user.step == USER_STEP['SELECT_DISTRICT']:
         start_message(message)
     else:
         user.step -= 2
