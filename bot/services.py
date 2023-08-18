@@ -1,9 +1,12 @@
 from telebot.types import KeyboardButton
 from telebot.types import ReplyKeyboardMarkup
 
-from bot.models import Tg_Users, Orders
-from bot.const import USER_STEP
+from bot.models import Orders
+from bot.models import Tg_Users
+
 from bot.const import BUTTONS
+from bot.const import USER_STEP
+from bot.const import CHANNEL_ID
 
 from data.models import Province
 from data.models import District
@@ -42,10 +45,10 @@ def select_province(message, bot):
             Tg_Users.objects.filter(user_id=message.from_user.id).update(step=USER_STEP['SELECT_DISTRICT'])
             if not Orders.objects.filter(user=user, status=False, from_to__isnull=False).exists():
                 Orders.objects.create(user=user, from_to=selected_province, status=False)
-                
+
             text = f"Please select a district from {selected_province_name}:"
             bot.send_message(message.from_user.id, text, reply_markup=reply_keyboard)
-            
+
         else:
             text = 'Sorry, there are no districts available for this province.'
             bot.send_message(message.from_user.id, text)
@@ -96,7 +99,6 @@ def number_of_passengers(message, bot):
 
 
 def thank_you_message(message, bot):
-    print(message.contact.phone_number)
     Tg_Users.objects.filter(user_id=message.chat.id).update(step=2)
 
     text = "Rahmat tez orada siz bn bog'lanamiz!"
@@ -108,3 +110,10 @@ def thank_you_message(message, bot):
     reply_markup.add(*buttons)
 
     bot.send_message(message.chat.id, text, reply_markup=reply_markup)
+
+    # Sending a message to the channel
+    user_name = message.chat.first_name  # Extract the user's first name
+    user_from = message.chat.username  # Extract the user's username
+    user_contact = message.contact.phone_number
+    channel_text = f"New user contact:\nName: {user_name}\nFrom: {user_from}\nContact: {user_contact}"
+    bot.send_message(CHANNEL_ID, channel_text)

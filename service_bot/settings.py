@@ -9,14 +9,11 @@ env.read_env()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-fd$l3tzd(eg&_5=-p^r8%km54jx2lxes^$f496ei&-yc&8jis#'
+SECRET_KEY = env.str('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env.str('DEBUG')
 
 ALLOWED_HOSTS = ['*']
 
@@ -130,5 +127,5 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
-BOT_TOKEN = '5969916959:AAGpYfnGt43eWAnZEsN0kguzNJ_xCz-Zl9A'
+# Telegram bot bot_token
+BOT_TOKEN = env.str('BOT_TOKEN')

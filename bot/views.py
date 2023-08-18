@@ -5,17 +5,19 @@ from telebot.types import ReplyKeyboardMarkup
 from django.conf import settings
 from django.http.response import HttpResponse
 
-
-from bot.const import USER_STEP
 from bot.const import BUTTONS
+from bot.const import USER_STEP
 
-from bot.models import Tg_Users, Orders
-from bot.services import enter_first_name, select_province, number_of_passengers, select_district, thank_you_message
+from bot.models import Orders
+from bot.models import Tg_Users
 
+from bot.services import select_province
+from bot.services import select_district
+from bot.services import enter_first_name
+from bot.services import thank_you_message
+from bot.services import number_of_passengers
 
-from  data.models import District
-from  data.models import Province
-
+from data.models import Province
 
 bot = telebot.TeleBot(settings.BOT_TOKEN)
 
@@ -30,39 +32,34 @@ def web_hook_view(request):
 
 @bot.message_handler(commands=['start'])
 def start_message(message):
-    try:
-        if Tg_Users.objects.filter(user_id=message.chat.id).exists():
-            user = Tg_Users.objects.get(user_id=message.chat.id)
-            try:
-                Orders.objects.get(user=user, status=False).delete()
-            except:
-                pass
-            Tg_Users.objects.filter(user_id=message.chat.id).update(step=2)
+    if Tg_Users.objects.filter(user_id=message.chat.id).exists():
+        user = Tg_Users.objects.get(user_id=message.chat.id)
+        Orders.objects.get(user=user, status=False).delete()
 
-            text = 'Siz turgan joy ?'
-            province = Province.objects.all().values_list('name', flat=True)
-            reply_markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+        Tg_Users.objects.filter(user_id=message.chat.id).update(step=USER_STEP['CHOOSE_LOCATION'])
 
-            buttons = [KeyboardButton(text=text) for text in province]
-            reply_markup.add(*buttons)
+        text = 'Siz turgan manzil ?'
+        province = Province.objects.all().values_list('name', flat=True)
+        reply_markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
 
-            bot.send_message(message.chat.id, text, reply_markup=reply_markup)
-        else:
-            print('/'*88)
-            Tg_Users.objects.create(user_id=message.chat.id, step=USER_STEP['ENTER_FIRST_NAME'])
+        buttons = [KeyboardButton(text=text) for text in province]
+        reply_markup.add(*buttons)
 
-            text = 'Salom Xush kelibsiz!!!\n\n'
-            text += 'Ismingizni kiriting:'
-            bot.send_message(message.chat.id, text)
-    except Exception as e:
-        print(e)
+        bot.send_message(message.chat.id, text, reply_markup=reply_markup)
+    else:
+        print('/'*88)
+        Tg_Users.objects.create(user_id=message.chat.id, step=USER_STEP['ENTER_FIRST_NAME'])
+
+        text = 'Salom Xush kelibsiz!!!\n\n'
+        text += 'Ismingizni kiriting:'
+        bot.send_message(message.chat.id, text)
 
 
 @bot.message_handler(regexp=BUTTONS['BACK'])
 def back_message(message):
-    print('/'*88)
     user = Tg_Users.objects.get(user_id=message.chat.id)
-    if user.step == 3:
+
+    if user.step == USER_STEP['CHOOSE_LOCATION']:
         start_message(message)
     else:
         user.step -= 2
