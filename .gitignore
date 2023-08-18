@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 # Django #
 *.log
 *.pot
@@ -136,9 +136,5 @@ GitHub.sublime-settings
 !.vscode/launch.json 
 !.vscode/extensions.json 
 .history
-=======
-<<<<<<< HEAD
+
 db.sqlite3
-=======
-db.sqlite3
->>>>>>> dd2cb2565e5865972236710ca94baa5e9f1bd66d
