@@ -1,12 +1,8 @@
-from telebot.types import KeyboardButton
-from telebot.types import ReplyKeyboardMarkup
+from telebot.types import KeyboardButton, ReplyKeyboardMarkup
 
-from bot.models import Tg_Users, Orders
-from bot.const import USER_STEP
-from bot.const import BUTTONS
-
-from data.models import Province
-from data.models import District
+from bot.const import BUTTONS, USER_STEP
+from bot.models import Orders, Tg_Users
+from data.models import District, Province
 
 
 def enter_first_name(message, bot):
@@ -25,7 +21,10 @@ def select_province(message, bot):
     try:
         user = Tg_Users.objects.get(user_id=message.from_user.id)
         if Orders.objects.filter(user=user, status=False, from_to__isnull=False).exists():
-            selected_province_name = Orders.objects.get(user=user, status=False, from_to__isnull=False).from_to
+            order = Orders.objects.get(user=user, status=False, from_to__isnull=False)
+            order.where=None
+            order.save()
+            selected_province_name = order.from_to
         else:
             selected_province_name = message.text
         selected_province = Province.objects.get(name=selected_province_name)
@@ -35,7 +34,6 @@ def select_province(message, bot):
             reply_keyboard = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
 
             buttons = [KeyboardButton(text=district.name) for district in districts]
-            print(buttons)
             reply_keyboard.add(*buttons)
             reply_keyboard.add(KeyboardButton(text=BUTTONS['BACK']))
 
@@ -58,15 +56,11 @@ def select_district(message, bot):
     try:
         user = Tg_Users.objects.get(user_id=message.from_user.id)
         if not Orders.objects.filter(user=user, status=False, where__isnull=False).exists():
-            print(message.text)
             selected_d = District.objects.get(name=message.text)
             order = Orders.objects.get(user=user, status=False)
             order.where=selected_d
             order.save()
-        else:
-            order = Orders.objects.get(user=user, status=False)
-            order.where = None
-            order.save()
+
         reply_markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
 
         buttons = [KeyboardButton(text=str(num)) for num in range(1, 5)]
@@ -83,9 +77,14 @@ def select_district(message, bot):
 
 def number_of_passengers(message, bot):
     try:
+        user = Tg_Users.objects.get(user_id=message.from_user.id)
+        order = Orders.objects.get(user=user, status=False)
+        order.seats=int(message.text)
+        order.save()
         reply_markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
         buttons = KeyboardButton(text="Raqamni jo'natish", request_contact=True)
         reply_markup.add(buttons)
+        reply_markup.add(KeyboardButton(text=BUTTONS['BACK']))
         text = " Raqamni jo'natish tugmasi orqali raqamingzni jo'nating"
         bot.send_message(message.from_user.id, text, reply_markup=reply_markup)
 

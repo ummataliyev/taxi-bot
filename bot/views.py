@@ -1,21 +1,13 @@
 import telebot
-from telebot.types import KeyboardButton
-from telebot.types import ReplyKeyboardMarkup
-
 from django.conf import settings
 from django.http.response import HttpResponse
+from telebot.types import KeyboardButton, ReplyKeyboardMarkup
 
-
-from bot.const import USER_STEP
-from bot.const import BUTTONS
-
-from bot.models import Tg_Users, Orders
-from bot.services import enter_first_name, select_province, number_of_passengers, select_district, thank_you_message
-
-
-from  data.models import District
-from  data.models import Province
-
+from bot.const import BUTTONS, USER_STEP
+from bot.models import Orders, Tg_Users
+from bot.services import (enter_first_name, number_of_passengers,
+                          select_district, select_province, thank_you_message)
+from data.models import District, Province
 
 bot = telebot.TeleBot(settings.BOT_TOKEN)
 
@@ -60,7 +52,6 @@ def start_message(message):
 
 @bot.message_handler(regexp=BUTTONS['BACK'])
 def back_message(message):
-    print('/'*88)
     user = Tg_Users.objects.get(user_id=message.chat.id)
     if user.step == 3:
         start_message(message)
