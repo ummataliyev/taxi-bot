@@ -5,8 +5,14 @@ from data.models import Province
 
 
 class Tg_Users(models.Model):
+    LANG_CHOICES = (
+        ('uz', 'Uzbek'),
+        ('rus', 'Russian'),
+    )
+
     user_id = models.IntegerField()
     step = models.IntegerField(default=0)
+    lan = models.CharField(max_length=4, choices=LANG_CHOICES)
     number = models.IntegerField(blank=True, null=True)
     first_name = models.CharField(max_length=100, null=True, blank=True)
 

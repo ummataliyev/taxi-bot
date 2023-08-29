@@ -5,10 +5,12 @@ USER_STEP = {
     'SELECT_DISTRICT': 3,
     'NUMBER_OF_PASSANGERS': 4,
     'THANK_YOU_MESSAGE': 5,
+    'CHOOSE_LANGUAGE': 6,
 }
 
 BUTTONS = {
-    'BACK': 'Orqaga qaytish'
+    'BACK_UZ': 'Orqaga',
+    'BACK_RU': 'Назад'
 }
 
 CHANNEL_ID = '-1001718993048'
