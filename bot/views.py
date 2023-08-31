@@ -29,12 +29,14 @@ def web_hook_view(request):
     if request.method == 'POST':
         bot.process_new_updates([telebot.types.Update.de_json(request.body.decode("utf-8"))])
         return HttpResponse(status=200)
+
     return HttpResponse('404 not found')
 
 
 @bot.message_handler(commands=['start'])
 def start_message(message):
     user_id = message.chat.id
+
     if Tg_Users.objects.filter(user_id=user_id).exists():
         user = Tg_Users.objects.get(user_id=message.chat.id)
         lan = user.lan
@@ -45,6 +47,7 @@ def start_message(message):
         if lan == 'uz':
             text = 'Siz turgan manzil ?'
             province = Province.objects.all().values_list('name_uz', flat=1)
+
         if lan == 'rus':
             province = Province.objects.all().values_list('name_ru', flat=1)
             text = 'Ваш текущий адрес ?'
@@ -65,6 +68,7 @@ def start_message(message):
             KeyboardButton(text='🇺🇿 O\'zbek'),
             KeyboardButton(text='🇷🇺 Руский')
         ]
+
         lan_button.add(*buttons)
         text = "Tilni tanlang:\n"
         text += "Выберите язык:"
@@ -76,6 +80,7 @@ def change_lan(message):
     user = Tg_Users.objects.get(user_id=message.chat.id)
     user.step = USER_STEP['CHOOSE_LANGUAGE']
     user.save()
+
     lan_button = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
     buttons = [
         KeyboardButton(text='🇺🇿 O\'zbek'),

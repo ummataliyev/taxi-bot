@@ -128,3 +128,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Telegram bot bot_token
 BOT_TOKEN = env.str('BOT_TOKEN')
+CHANNEL_ID = env.str('CHANNEL_ID')

@@ -13,4 +13,3 @@ BUTTONS = {
     'BACK_RU': 'Назад'
 }
 
-CHANNEL_ID = '-1001718993048'
