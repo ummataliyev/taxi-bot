@@ -25,7 +25,7 @@ class Tg_Users(models.Model):
 
 
 class Orders(models.Model):
-    user = models.ForeignKey(Tg_Users, on_delete=models.SET_NULL, null=True, related_name='user_orders')
+    user = models.ForeignKey(Tg_Users, on_delete=models.CASCADE, null=True, related_name='user_orders')
     from_to = models.ForeignKey(Province, on_delete=models.SET_NULL, blank=True, null=True)
     where = models.ForeignKey(District, on_delete=models.SET_NULL, blank=True, null=True)
     seats = models.PositiveIntegerField(blank=True, null=True)

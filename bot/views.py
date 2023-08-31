@@ -70,6 +70,23 @@ def start_message(message):
         bot.send_message(user_id, text, reply_markup=lan_button)
 
 
+@bot.message_handler(commands=['lan'])
+def change_lan(message):
+    user = Tg_Users.objects.get(user_id=message.chat.id)
+    user.step = USER_STEP['CHOOSE_LANGUAGE']
+    user.save()
+    lan_button = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+    buttons = [
+        KeyboardButton(text='🇺🇿 O\'zbek'),
+        KeyboardButton(text='🇷🇺 Руский')
+    ]
+
+    lan_button.add(*buttons)
+    text = "Tilni tanlang:\n"
+    text += "Выберите язык:"
+    bot.send_message(message.chat.id, text, reply_markup=lan_button)
+
+
 @bot.message_handler(regexp=BUTTONS['BACK_UZ'])
 def back_message_uz(message):
     user = Tg_Users.objects.get(user_id=message.chat.id)

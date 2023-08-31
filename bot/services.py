@@ -22,21 +22,32 @@ def set_lang(message, bot):
 
     user_id = message.chat.id
     user = Tg_Users.objects.get(user_id=user_id)
-    user.step = USER_STEP['ENTER_FIRST_NAME']
-    user.lan = lan
-    user.save()
+    if not user.first_name:
+        user.step = USER_STEP['ENTER_FIRST_NAME']
+        user.lan = lan
+        user.save()
 
-    text = ''
-    if user.lan == 'uz':
-        text = 'Salom! Iltimos, ismingizni kiriting:\n\n'
-    if user.lan == 'rus':
-        text += 'Привет! Пожалуйста, введите ваше имя:'
-    bot.send_message(user_id, text, reply_markup=ReplyKeyboardRemove())
+        text = ''
+        if user.lan == 'uz':
+            text = 'Salom! Iltimos, ismingizni kiriting:\n\n'
+        if user.lan == 'rus':
+            text += 'Привет! Пожалуйста, введите ваше имя:'
+        bot.send_message(user_id, text, reply_markup=ReplyKeyboardRemove())
+    else:
+        user.step = USER_STEP['ENTER_FIRST_NAME']
+        user.lan = lan
+        user.save()
+        enter_first_name(message, bot)
 
 
 def enter_first_name(message, bot):
-    Tg_Users.objects.filter(user_id=message.from_user.id).update(first_name=message.text, step=USER_STEP['CHOOSE_LOCATION'])
-    user = Tg_Users.objects.get(user_id=message.chat.id)
+    user = Tg_Users.objects.get(user_id=message.from_user.id)
+    if not user.first_name:
+        user.first_name = message.text
+        
+    user.step = USER_STEP['CHOOSE_LOCATION']
+    user.save()
+    
     if user.lan == 'uz':
         text = 'Qayerdan murojat qilyapsiz?'
         provinces = Province.objects.all().values_list('name_uz', flat=True)
@@ -64,10 +75,10 @@ def select_province(message, bot):
         selected_province_name = message.text
     if user.lan == 'uz':
         selected_province = Province.objects.get(name_uz=selected_province_name)
+        districts = District.objects.exclude(province=selected_province)
     if user.lan == 'rus':
         selected_province = Province.objects.get(name_ru=selected_province_name)
-
-    districts = District.objects.exclude(province=selected_province)
+        districts = District.objects.exclude(province=selected_province)
 
     if districts:
         reply_keyboard = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
@@ -81,12 +92,16 @@ def select_province(message, bot):
             reply_keyboard.add(KeyboardButton(text=BUTTONS['BACK_RU']))
 
         Tg_Users.objects.filter(user_id=message.from_user.id).update(step=USER_STEP['SELECT_DISTRICT'])
+
         if not Orders.objects.filter(user=user, status=False, from_to__isnull=False).exists():
             Orders.objects.create(user=user, from_to=selected_province, status=False)
 
-        text = f"Please select a district from {selected_province_name}:"
-        bot.send_message(message.from_user.id, text, reply_markup=reply_keyboard)
+        if user.lan == 'uz':
+            text = f"Iltimos {selected_province_name}dan, tumanni tanlang :"
+        if user.lan == 'rus':
+            text = f"Пожалуйста, выберите район из {selected_province_name}:"
 
+        bot.send_message(message.from_user.id, text, reply_markup=reply_keyboard)
     else:
         text = 'Sorry, there are no districts available for this province.'
         bot.send_message(message.from_user.id, text)
@@ -105,10 +120,14 @@ def select_district(message, bot):
         order.save()
 
     reply_markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
-
-    buttons = [KeyboardButton(text=str(num)) for num in range(1, 5)]
-    reply_markup.add(*buttons)
-    reply_markup.add(KeyboardButton(text=BUTTONS['BACK']))
+    if user.lan == 'uz':
+        buttons = [KeyboardButton(text=str(num)) for num in range(1, 5)]
+        reply_markup.add(*buttons)
+        reply_markup.add(KeyboardButton(text=BUTTONS['BACK_UZ']))
+    if user.lan == 'rus':
+        buttons = [KeyboardButton(text=str(num)) for num in range(1, 5)]
+        reply_markup.add(*buttons)
+        reply_markup.add(KeyboardButton(text=BUTTONS['BACK_RU']))
 
     Tg_Users.objects.filter(user_id=message.from_user.id).update(step=USER_STEP['NUMBER_OF_PASSANGERS'])
     if user.lan == 'uz':
@@ -123,14 +142,17 @@ def number_of_passengers(message, bot):
     order = Orders.objects.get(user=user, status=False)
     order.seats = int(message.text)
     order.save()
-    reply_markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
     if user.lan == 'uz':
         buttons = KeyboardButton(text="Raqamni jo'natish", request_contact=True)
+        reply_markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+        reply_markup.add(buttons)
+        reply_markup.add(KeyboardButton(text=BUTTONS['BACK_UZ']))
     if user.lan == 'rus':
         buttons = KeyboardButton(text="Отправить номер", request_contact=True)
+        reply_markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+        reply_markup.add(buttons)
+        reply_markup.add(KeyboardButton(text=BUTTONS['BACK_RU']))
 
-    reply_markup.add(buttons)
-    reply_markup.add(KeyboardButton(text=BUTTONS['BACK']))
     if user.lan == 'uz':
         text = '"Raqamni jo\'natish" tugmasi orqali raqamingzni jo\'nating'
     if user.lan == 'rus':
