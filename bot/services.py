@@ -41,32 +41,28 @@ def set_lang(message, bot):
 
 
 def enter_first_name(message, bot):
-    try:
-        user = Tg_Users.objects.get(user_id=message.from_user.id)
-        if not user.first_name:
-            user.first_name = message.text
-            
-        Orders.objects.filter(user__user_id=user.user_id, status=False).delete()
-            
-        user.step = USER_STEP['CHOOSE_LOCATION']
-        user.save()
-        
-        if user.lan == 'uz':
-            text = 'Qayerdan murojat qilyapsiz?'
-            provinces = Province.objects.all().values_list('name_uz', flat=True)
-        if user.lan == 'rus':
-            text = 'Откуда вы подаете заявление?'
-            provinces = Province.objects.all().values_list('name_ru', flat=True)
+    user = Tg_Users.objects.get(user_id=message.from_user.id)
+    if not user.first_name:
+        user.first_name = message.text
 
-        reply_markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+    Orders.objects.filter(user__user_id=user.user_id, status=False).delete()
 
-        buttons = [KeyboardButton(text=text) for text in provinces]
-        reply_markup.add(*buttons)
+    user.step = USER_STEP['CHOOSE_LOCATION']
+    user.save()
 
-        bot.send_message(message.from_user.id, text, reply_markup=reply_markup)
-    except Exception as e:
-        print(e)
+    if user.lan == 'uz':
+        text = 'Qayerdan murojat qilyapsiz?'
+        provinces = Province.objects.all().values_list('name_uz', flat=True)
+    if user.lan == 'rus':
+        text = 'Откуда вы подаете заявление?'
+        provinces = Province.objects.all().values_list('name_ru', flat=True)
 
+    reply_markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+
+    buttons = [KeyboardButton(text=text) for text in provinces]
+    reply_markup.add(*buttons)
+
+    bot.send_message(message.from_user.id, text, reply_markup=reply_markup)
 
 
 def select_province(message, bot):
@@ -83,7 +79,6 @@ def select_province(message, bot):
                 selected_province_name = order.from_to.name_ru
         else:
             selected_province_name = message.text
-        print(selected_province_name)
         if user.lan == 'uz':
             selected_province = Province.objects.get(name_uz=selected_province_name)
             districts = District.objects.exclude(province=selected_province)
@@ -105,7 +100,6 @@ def select_province(message, bot):
             Tg_Users.objects.filter(user_id=message.from_user.id).update(step=USER_STEP['SELECT_DISTRICT'])
 
             if not Orders.objects.filter(user=user, status=False, from_to__isnull=False).exists():
-                print(selected_province.name_ru)
                 Orders.objects.create(user=user, from_to=selected_province, status=False)
 
             if user.lan == 'uz':
@@ -115,12 +109,15 @@ def select_province(message, bot):
 
             bot.send_message(message.from_user.id, text, reply_markup=reply_keyboard)
         else:
-            text = 'Sorry, there are no districts available for this province.'
-            bot.send_message(message.from_user.id, text)
-    except Exception as e:
-        text = 'Sorry, there are no districts available for this province.'
-        bot.send_message(message.from_user.id, text)
-        print(e)
+            if user.lan == 'uz':
+                bot.send_message(message.from_user.id, "To'g'ri qiymati kiritng", reply_markup=reply_keyboard)
+            if user.lan == 'rus':
+                bot.send_message(message.from_user.id, "Пожалуйста, введите допустимое значение", reply_markup=reply_keyboard)
+    except ValueError:
+        if user.lan == 'uz':
+            bot.send_message(message.from_user.id, "To'g'ri qiymati kiritng", reply_markup=reply_keyboard)
+            if user.lan == 'rus':
+                bot.send_message(message.from_user.id, "Пожалуйста, введите допустимое значение", reply_markup=reply_keyboard)
 
 
 def select_district(message, bot):
@@ -137,6 +134,7 @@ def select_district(message, bot):
             order.save()
 
         reply_markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+
         if user.lan == 'uz':
             buttons = [KeyboardButton(text=str(num)) for num in range(1, 5)]
             reply_markup.add(*buttons)
@@ -151,11 +149,14 @@ def select_district(message, bot):
             text = "Odam soni:"
         if user.lan == 'rus':
             text = "Число людей:"
+
         bot.send_message(message.from_user.id, text, reply_markup=reply_markup)
-    except Exception as e:
-        text = 'Sorry, there are no districts available for this province.'
-        bot.send_message(message.from_user.id, text)
-        print(e)
+
+    except ValueError:
+        if user.lan == 'uz':
+            bot.send_message(message.from_user.id, "To'g'ri qiymati kiritng", reply_markup=reply_markup)
+        if user.lan == 'rus':
+            bot.send_message(message.from_user.id, "Пожалуйста, введите допустимое значение", reply_markup=reply_markup)
 
 
 def number_of_passengers(message, bot):
@@ -196,22 +197,30 @@ def number_of_passengers(message, bot):
                 reply_markup.add(*buttons)
                 reply_markup.add(KeyboardButton(text=BUTTONS['BACK_RU']))
 
-            bot.send_message(message.from_user.id, "Fuck You Bitch", reply_markup=reply_markup)
-    except Exception as e:
+            if user.lan == 'uz':
+                bot.send_message(message.from_user.id, "To'g'ri qiymati kiritng", reply_markup=reply_markup)
+            if user.lan == 'rus':
+                bot.send_message(message.from_user.id, "Пожалуйста, введите допустимое значение", reply_markup=reply_markup)
+
+    except ValueError:
         user = Tg_Users.objects.get(user_id=message.from_user.id)
         reply_markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+
         if user.lan == 'uz':
             buttons = [KeyboardButton(text=str(num)) for num in range(1, 5)]
             reply_markup.add(*buttons)
             reply_markup.add(KeyboardButton(text=BUTTONS['BACK_UZ']))
+
         if user.lan == 'rus':
             buttons = [KeyboardButton(text=str(num)) for num in range(1, 5)]
             reply_markup.add(*buttons)
             reply_markup.add(KeyboardButton(text=BUTTONS['BACK_RU']))
 
-        bot.send_message(message.from_user.id, "Fuck You Bitch", reply_markup=reply_markup)
+        if user.lan == 'uz':
+            bot.send_message(message.from_user.id, "To'g'ri qiymati kiritng", reply_markup=reply_markup)
 
-
+        if user.lan == 'rus':
+            bot.send_message(message.from_user.id, "Пожалуйста, введите допустимое значение", reply_markup=reply_markup)
 
 
 def thank_you_message(message, bot):
@@ -220,6 +229,7 @@ def thank_you_message(message, bot):
     if user.lan == 'uz':
         text = "Rahmat tez orada siz bn bog'lanamiz!"
         province = Province.objects.all().values_list('name_uz', flat=True)
+
     if user.lan == 'rus':
         text = "Спасибо, и мы свяжемся с вами в ближайшее время!"
         province = Province.objects.all().values_list('name_ru', flat=True)
