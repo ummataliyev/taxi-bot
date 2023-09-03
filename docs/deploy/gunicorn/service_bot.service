@@ -1,0 +1,17 @@
+[Unit]
+Description=gunicorn daemon
+Requires=service_bot.socket
+After=network.target
+
+[Service]
+User=root
+Group=www-data
+WorkingDirectory=/root/service_bot
+ExecStart=/root/service_bot/venv/bin/gunicorn \
+          --access-logfile - \
+          --workers 3 \
+          --bind unix:/run/service_bot.sock \
+          service_bot.wsgi:application 
+
+[Install]
+WantedBy=multi-user.target
