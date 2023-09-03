@@ -1,0 +1,9 @@
+.gitginore
+.gitlab-ci.yml
+.git
+.git*
+Dockerfile
+README.md
+docker-compose.yml
+docker-compose.yaml
+.env.example
