@@ -46,28 +46,36 @@ def set_lang(message, bot):
 
 
 def enter_first_name(message, bot):
-    user = Tg_Users.objects.get(user_id=message.from_user.id)
+    try:
+        user = Tg_Users.objects.get(user_id=message.from_user.id)
 
-    if not user.first_name:
-        user.first_name = message.text
+        if not user.first_name:
+            user.first_name = message.text
 
-    Orders.objects.filter(user__user_id=user.user_id, status=False).delete()
-    user.step = USER_STEP['CHOOSE_LOCATION']
-    user.save()
+        Orders.objects.filter(user__user_id=user.user_id, status=False).delete()
+        user.step = USER_STEP['CHOOSE_LOCATION']
+        user.save()
 
-    if user.lan == 'uz':
-        text = 'Qayerdan murojat qilyapsiz?'
-        provinces = Province.objects.all().values_list('name_uz', flat=True)
+        if user.lan == 'uz':
+            text = 'Qayerdan murojat qilyapsiz?'
+            provinces = Province.objects.all().values_list('name_uz', flat=True)
 
-    if user.lan == 'rus':
-        text = 'Откуда вы подаете заявление?'
-        provinces = Province.objects.all().values_list('name_ru', flat=True)
+        if user.lan == 'rus':
+            text = 'Откуда вы подаете заявление?'
+            provinces = Province.objects.all().values_list('name_ru', flat=True)
 
-    reply_markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
-    buttons = [KeyboardButton(text=text) for text in provinces]
-    reply_markup.add(*buttons)
+        reply_markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+        buttons = [KeyboardButton(text=text) for text in provinces]
+        reply_markup.add(*buttons)
 
-    bot.send_message(message.from_user.id, text, reply_markup=reply_markup)
+        bot.send_message(message.from_user.id, text, reply_markup=reply_markup)
+
+    except ValueError:
+        if user.lan == 'uz':
+            bot.send_message(message.from_user.id, "To'g'ri qiymati kiritng", reply_markup=reply_markup)
+
+        if user.lan == 'rus':
+            bot.send_message(message.from_user.id, "Пожалуйста, введите допустимое значение", reply_markup=reply_markup)
 
 
 def select_province(message, bot):
@@ -248,21 +256,29 @@ def number_of_passengers(message, bot):
 
 
 def thank_you_message(message, bot):
-    Tg_Users.objects.filter(user_id=message.chat.id).update(step=2)
-    user = Tg_Users.objects.get(user_id=message.from_user.id)
+    try:
+        Tg_Users.objects.filter(user_id=message.chat.id).update(step=2)
+        user = Tg_Users.objects.get(user_id=message.from_user.id)
 
-    if user.lan == 'uz':
-        text = "Rahmat tez orada siz bn bog'lanamiz!"
-        province = Province.objects.all().values_list('name_uz', flat=True)
+        if user.lan == 'uz':
+            text = "Rahmat tez orada siz bn bog'lanamiz!"
+            province = Province.objects.all().values_list('name_uz', flat=True)
 
-    if user.lan == 'rus':
-        text = "Спасибо, и мы свяжемся с вами в ближайшее время!"
-        province = Province.objects.all().values_list('name_ru', flat=True)
+        if user.lan == 'rus':
+            text = "Спасибо, и мы свяжемся с вами в ближайшее время!"
+            province = Province.objects.all().values_list('name_ru', flat=True)
 
-    reply_markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
-    buttons = [KeyboardButton(text=text) for text in province]
-    reply_markup.add(*buttons)
-    bot.send_message(message.chat.id, text, reply_markup=reply_markup)
+        reply_markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+        buttons = [KeyboardButton(text=text) for text in province]
+        reply_markup.add(*buttons)
+        bot.send_message(message.chat.id, text, reply_markup=reply_markup)
+
+    except ValueError:
+        if user.lan == 'uz':
+            bot.send_message(message.from_user.id, "To'g'ri qiymati kiritng", reply_markup=reply_markup)
+
+        if user.lan == 'rus':
+            bot.send_message(message.from_user.id, "Пожалуйста, введите допустимое значение", reply_markup=reply_markup)
 
     user = Tg_Users.objects.get(user_id=message.chat.id)
     order = Orders.objects.get(user=user, status=False)
