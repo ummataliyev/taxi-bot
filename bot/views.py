@@ -130,3 +130,5 @@ def text_message(message):
 
     func = switcher.get(Tg_Users.objects.get(user_id=message.chat.id).step, lambda: start_message(message))
     func(message, bot)
+
+print("Hello CD")
