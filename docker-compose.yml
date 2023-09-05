@@ -1,0 +1,42 @@
+version: '3.3'
+
+services:
+  django:
+    build: .
+    container_name: django
+    volumes:
+      - .:/app
+    ports:
+      - 8000:8000
+    depends_on:
+      - pgdb
+    env_file:
+      - .env
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - web-static:/root/service_bot/static
+    networks:
+      - mynetwork
+    depends_on:
+      - django
+
+  pgdb:
+    image: postgres:11
+    container_name: pgdb
+    environment:
+      - .env
+    volumes:
+      - pgdb_data:/var/lib/postgresql/data
+    ports:
+      - 5010:5432
+
+volumes:
+  pgdb_data:
+  django:
+
